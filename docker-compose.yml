@@ -136,9 +136,9 @@ services:
       - PGID=1000
       - TZ=Europe/Vienna
       - UN_SONARR_0_URL=http://sonarr:8989
-      - UN_SONARR_0_API_KEY=dc3d0fc9800f49728c2e623c52ea136b
+      - UN_SONARR_0_API_KEY=
       - UN_RADARR_0_URL=http://radarr:7878
-      - UN_RADARR_0_API_KEY=dadd610b775f418b987c4bb5b9ef78bf
+      - UN_RADARR_0_API_KEY=
       - UN_PATHS_0=/downloads
     volumes:
       - /mnt/nas/downloads:/downloads
