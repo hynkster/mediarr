@@ -124,76 +124,130 @@ monitor_copy_progress() {
     printf "\n"
 }
 
-# Function to convert a single file
+# Add timeout function
+timeout_handler() {
+    local pid=$1
+    local timeout=$2
+    (
+        sleep $timeout
+        kill -s SIGTERM $pid 2>/dev/null
+        sleep 2
+        kill -s SIGKILL $pid 2>/dev/null
+    ) &
+    timeout_pid=$!
+}
+
+# Enhanced input validation
+validate_input() {
+    local input_file="$1"
+    local lock_file="/tmp/$(basename "$input_file").lock"
+    
+    # Check if file is being processed
+    if [ -f "$lock_file" ]; then
+        log_message "File is already being processed: $input_file" "WARNING"
+        return 1
+    fi
+    
+    # Create lock file
+    touch "$lock_file"
+    
+    # Validate file integrity
+    if ! ffmpeg -v error -i "$input_file" -f null - 2>/dev/null; then
+        log_message "Input file corrupted: $input_file" "ERROR"
+        rm -f "$lock_file"
+        return 1
+    fi
+    
+    return 0
+}
+
+validate_audio() {
+    local input_file="$1"
+    local error_output="/tmp/ffmpeg_audio_$$.txt"
+    
+    if ! ffprobe -v error -select_streams a -show_entries stream=codec_name -of csv=p=0 "$input_file" 2>"$error_output"; then
+        log_message "Audio validation failed: $(cat $error_output)" "ERROR"
+        rm -f "$error_output"
+        return 1
+    fi
+    return 0
+}
+
+# Update signal handling
+trap cleanup_and_exit SIGINT SIGTERM SIGQUIT
+trap 'log_message "Received interrupt signal, cleaning up..." "WARNING"; cleanup_and_exit' INT TERM QUIT
+
+# Improved cleanup
+cleanup_and_exit() {
+    local exit_code=${1:-1}
+    log_message "Cleaning up..." "INFO"
+    # Kill any running ffmpeg processes
+    pkill -P $$ ffmpeg
+    # Remove lock files
+    find /tmp -name "*.lock" -user $USER -delete
+    # Remove temporary files
+    find /tmp -name "temp_convert_$$.*" -delete
+    find /tmp -name "ffmpeg_*_$$.*" -delete
+    # Kill timeout handler if running
+    [ -n "$timeout_pid" ] && kill $timeout_pid 2>/dev/null
+    exit $exit_code
+}
+
+# Enhanced conversion function
 convert_file() {
     local input_file="$1"
     local output_file="${input_file%.*}.mkv"
     local temp_output_file="/tmp/temp_convert_$$.mkv"
     local error_output="/tmp/ffmpeg_error_$$.txt"
+    local timeout=3600  # 1 hour timeout
     
     ((CURRENT_FILE++))
     
-    # Skip check with reason
-    if grep -Fxq "$input_file" "$PROCESSED_LIST"; then
-        # Check if MKV exists
-        local mkv_file="${input_file%.*}.mkv"
-        if [ -f "$mkv_file" ]; then
-            local mkv_size=$(stat -c %s "$mkv_file")
-            log_message "Skipping: $(basename "$input_file") (MKV exists: $(format_size $mkv_size))"
-        else
-            log_message "Warning: $(basename "$input_file") is marked as processed but MKV not found"
-            # Optionally remove from processed list
-            sed -i "\#^$input_file\$#d" "$PROCESSED_LIST"
+    # Validate input and audio
+    if ! validate_input "$input_file" || ! validate_audio "$input_file"; then
+        ((ERROR_FILES++))
+        return 1
+    fi
+
+    # Conversion methods array
+    local -a conversion_methods=(
+        "-c:v libx264 -preset medium -crf 22 -c:a aac -b:a 192k"
+        "-c:v libx264 -preset slower -crf 23 -c:a copy"
+        "-c:v libx264 -preset veryslow -crf 24 -c:a aac -b:a 256k"
+    )
+    
+    # Try each conversion method
+    for method in "${conversion_methods[@]}"; do
+        log_message "Attempting conversion with: $method"
+        
+        ffmpeg -i "$input_file" $method "$temp_output_file" &
+        ffmpeg_pid=$!
+        
+        # Set timeout
+        timeout_handler $ffmpeg_pid $timeout
+        
+        # Wait for ffmpeg
+        wait $ffmpeg_pid
+        local result=$?
+        
+        # Cleanup timeout handler
+        kill $timeout_pid 2>/dev/null
+        
+        if [ $result -eq 0 ] && [ -f "$temp_output_file" ] && [ -s "$temp_output_file" ]; then
+            mv "$temp_output_file" "$output_file"
+            echo "$input_file" >> "$PROCESSED_LIST"
+            ((SUCCESS_FILES++))
+            log_message "Successfully converted: $(basename "$input_file")"
+            rm -f "$error_output"
             return 0
         fi
-        return 0
-    fi
+        
+        log_message "Conversion attempt failed: $(tail -n 2 $error_output)" "ERROR"
+    done
     
-    local input_size=$(stat -c %s "$input_file")
-    log_message "Starting: $(basename "$input_file") ($(format_size $input_size))"
-    
+    ((ERROR_FILES++))
     rm -f "$temp_output_file" "$error_output"
-    
-    # First attempt with genpts flag
-    ffmpeg -nostdin -v warning -fflags +genpts \
-        -i "$input_file" \
-        -map 0 -c copy \
-        "$temp_output_file" 2> "$error_output"
-    
-    local ffmpeg_status=$?
-    
-    # Retry with alternative flags if first attempt failed
-    if [ $ffmpeg_status -ne 0 ]; then
-        log_message "Retrying conversion with alternative method..."
-        rm -f "$temp_output_file"
-        
-        ffmpeg -nostdin -v warning -fflags +genpts+igndts \
-            -i "$input_file" \
-            -map 0 -c copy \
-            "$temp_output_file" 2> "$error_output"
-        
-        ffmpeg_status=$?
-    fi
-    
-    if [ $ffmpeg_status -ne 0 ]; then
-        local error_msg=$(cat "$error_output")
-        log_message "Conversion failed: $error_msg"
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - File: $input_file - Error: $error_msg" >> "$ERROR_LOG"
-        rm -f "$temp_output_file" "$error_output"
-        return 1
-    fi
-    
-    if mv "$temp_output_file" "$output_file"; then
-        echo "$input_file" >> "$PROCESSED_LIST"
-        local final_size=$(stat -c %s "$output_file")
-        log_message "Completed: $(basename "$input_file") ($(format_size $final_size))"
-        rm -f "$error_output"
-        return 0
-    else
-        log_message "Error: Failed to move converted file"
-        rm -f "$temp_output_file" "$error_output"
-        return 1
-    fi
+    return 1
 }
 
 # Function to process directory

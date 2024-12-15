@@ -84,9 +84,34 @@ services:
       timeout: 10s
       retries: 3
 
+  gluetun:
+    image: qmcgaw/gluetun:v3
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - VPN_SERVICE_PROVIDER=mullvad
+      - VPN_TYPE=wireguard
+      - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
+      - WIREGUARD_ADDRESSES=${WIREGUARD_ADDRESSES}
+      - SERVER_COUNTRIES=Belgium
+      - TZ=${TZ}
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    ports:
+      - "8888:8888/tcp"  # HTTP proxy port
+      - "8388:8388/tcp"  # SOCKS proxy port
+      - "${QB_PORT}:8080"      # qBittorrent WebUI
+      - "${QB_INCOMING_PORT}:6881"      # qBittorrent incoming
+      - "${QB_INCOMING_PORT}:6881/udp"  # qBittorrent incoming UDP
+    volumes:
+      - ${MEDIARR_CONFIG}/gluetun:/gluetun
+    restart: unless-stopped
+
   qbittorrent:
     image: linuxserver/qbittorrent:latest
     container_name: qbittorrent
+    network_mode: "service:gluetun"
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -96,10 +121,10 @@ services:
     volumes:
       - ${MEDIARR_CONFIG}/qbittorrent:/config
       - ${NAS_DOWNLOADS}:/downloads
-    ports:
-      - "${QB_PORT}:8080"
-      - "${QB_INCOMING_PORT}:6881"
-      - "${QB_INCOMING_PORT}:6881/udp"
+#    ports:
+#      - "${QB_PORT}:8080"
+#      - "${QB_INCOMING_PORT}:6881"
+#      - "${QB_INCOMING_PORT}:6881/udp"
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
