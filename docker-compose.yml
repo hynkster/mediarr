@@ -1,0 +1,148 @@
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    network_mode: "host"
+    volumes:
+      - /opt/mediarr/config/jellyfin:/config
+      - /opt/mediarr/cache:/cache
+      - /mnt/nas/movies:/media/movies:ro
+      - /mnt/nas/shows:/media/shows:ro
+      - /mnt/nas/dokus:/media/dokus:ro
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Vienna
+      - JELLYFIN_FFmpeg__EnableHardwareEncoding=true
+      - JELLYFIN_FFmpeg__EnableVAAPI=true
+      - JELLYFIN_FFmpeg__VAAPIDevice=/dev/dri/renderD128
+      - JELLYFIN_FFmpeg__EncoderThreadCount=4
+      - JELLYFIN_FFmpeg__HardwareDecodingCodecs=["h264"]
+    devices:
+      - /dev/dri/card1:/dev/dri/card1
+      - /dev/dri/renderD128:/dev/dri/renderD128
+    group_add:
+      - "989"
+      - "985"
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8096/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  sonarr:
+    image: linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Vienna
+    volumes:
+      - /opt/mediarr/config/sonarr:/config
+      - /mnt/nas/shows:/tv/shows
+      - /mnt/nas/dokus:/tv/dokus
+      - /mnt/nas/downloads:/downloads
+    ports:
+      - "8989:8989"
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8989/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  radarr:
+    image: linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Vienna
+    volumes:
+      - /opt/mediarr/config/radarr:/config
+      - /mnt/nas/movies:/movies
+      - /mnt/nas/downloads:/downloads
+    ports:
+      - "7878:7878"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:7878/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  qbittorrent:
+    image: linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Vienna
+      - WEBUI_PORT=8080
+      - DOCKER_MODS=ghcr.io/vuetorrent/vuetorrent-lsio-mod:latest
+    volumes:
+      - /opt/mediarr/config/qbittorrent:/config
+      - /mnt/nas/downloads:/downloads
+    ports:
+      - "8080:8080"
+      - "6881:6881"
+      - "6881:6881/udp"
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  prowlarr:
+    image: linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Vienna
+    volumes:
+      - /opt/mediarr/config/prowlarr:/config
+    ports:
+      - "9696:9696"
+    restart: unless-stopped
+
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    environment:
+      - LOG_LEVEL=info
+      - TZ=Europe/Vienna
+      - CAPTCHA_SOLVER=none
+    ports:
+      - "8191:8191"
+    restart: unless-stopped
+
+  unpackerr:
+    image: ghcr.io/unpackerr/unpackerr:latest
+    container_name: unpackerr
+    environment:
+      - PUID=1000^
+      - PGID=1000
+      - TZ=Europe/Vienna
+      - UN_SONARR_0_URL=http://sonarr:8989
+      - UN_SONARR_0_API_KEY=dc3d0fc9800f49728c2e623c52ea136b
+      - UN_RADARR_0_URL=http://radarr:7878
+      - UN_RADARR_0_API_KEY=dadd610b775f418b987c4bb5b9ef78bf
+      - UN_PATHS_0=/downloads
+    volumes:
+      - /mnt/nas/downloads:/downloads
+    restart: unless-stopped
+    depends_on:
+      - sonarr
+      - radarr
