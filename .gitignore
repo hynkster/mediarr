@@ -6,7 +6,9 @@
 /mnt/*
 .env
 *.log
-nas-credentials
+.env
+**/credentials.txt
+**/nas-credentials
 
 # System files
 .DS_Store

@@ -4,15 +4,15 @@ services:
     container_name: jellyfin
     network_mode: "host"
     volumes:
-      - /opt/mediarr/config/jellyfin:/config
-      - /opt/mediarr/cache:/cache
-      - /mnt/nas/movies:/media/movies:ro
-      - /mnt/nas/shows:/media/shows:ro
-      - /mnt/nas/dokus:/media/dokus:ro
+      - ${MEDIARR_CONFIG}/jellyfin:/config
+      - ${MEDIARR_CACHE}:/cache
+      - ${NAS_MOVIES}:/media/movies:ro
+      - ${NAS_SHOWS}:/media/shows:ro
+      - ${NAS_DOKUS}:/media/dokus:ro
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/Vienna
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
       - JELLYFIN_FFmpeg__EnableHardwareEncoding=true
       - JELLYFIN_FFmpeg__EnableVAAPI=true
       - JELLYFIN_FFmpeg__VAAPIDevice=/dev/dri/renderD128
@@ -43,14 +43,14 @@ services:
     image: linuxserver/sonarr:latest
     container_name: sonarr
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/Vienna
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
     volumes:
-      - /opt/mediarr/config/sonarr:/config
-      - /mnt/nas/shows:/tv/shows
-      - /mnt/nas/dokus:/tv/dokus
-      - /mnt/nas/downloads:/downloads
+      - ${MEDIARR_CONFIG}/sonarr:/config
+      - ${NAS_SHOWS}:/tv/shows
+      - ${NAS_DOKUS}:/tv/dokus
+      - ${NAS_DOWNLOADS}:/downloads
     ports:
       - "8989:8989"
     security_opt:
@@ -66,13 +66,13 @@ services:
     image: linuxserver/radarr:latest
     container_name: radarr
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/Vienna
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
     volumes:
-      - /opt/mediarr/config/radarr:/config
-      - /mnt/nas/movies:/movies
-      - /mnt/nas/downloads:/downloads
+      - ${MEDIARR_CONFIG}/radarr:/config
+      - ${NAS_MOVIES}:/movies
+      - ${NAS_DOWNLOADS}:/downloads
     ports:
       - "7878:7878"
     restart: unless-stopped
@@ -88,18 +88,18 @@ services:
     image: linuxserver/qbittorrent:latest
     container_name: qbittorrent
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/Vienna
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
       - WEBUI_PORT=8080
       - DOCKER_MODS=ghcr.io/vuetorrent/vuetorrent-lsio-mod:latest
     volumes:
-      - /opt/mediarr/config/qbittorrent:/config
-      - /mnt/nas/downloads:/downloads
+      - ${MEDIARR_CONFIG}/qbittorrent:/config
+      - ${NAS_DOWNLOADS}:/downloads
     ports:
-      - "8080:8080"
-      - "6881:6881"
-      - "6881:6881/udp"
+      - "${QB_PORT}:8080"
+      - "${QB_INCOMING_PORT}:6881"
+      - "${QB_INCOMING_PORT}:6881/udp"
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
@@ -108,13 +108,13 @@ services:
     image: linuxserver/prowlarr:latest
     container_name: prowlarr
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/Vienna
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
     volumes:
       - /opt/mediarr/config/prowlarr:/config
     ports:
-      - "9696:9696"
+      - "${PROWLARR_PORT}:9696"
     restart: unless-stopped
 
   flaresolverr:
@@ -132,16 +132,16 @@ services:
     image: ghcr.io/unpackerr/unpackerr:latest
     container_name: unpackerr
     environment:
-      - PUID=1000^
-      - PGID=1000
-      - TZ=Europe/Vienna
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
       - UN_SONARR_0_URL=http://sonarr:8989
-      - UN_SONARR_0_API_KEY=dc3d0fc9800f49728c2e623c52ea136b
+      - UN_SONARR_0_API_KEY=${SONARR_API_KEY}
       - UN_RADARR_0_URL=http://radarr:7878
-      - UN_RADARR_0_API_KEY=dadd610b775f418b987c4bb5b9ef78bf
+      - UN_RADARR_0_API_KEY=${RADARR_API_KEY}
       - UN_PATHS_0=/downloads
     volumes:
-      - /mnt/nas/downloads:/downloads
+      - ${NAS_DOWNLOADS}:/downloads
     restart: unless-stopped
     depends_on:
       - sonarr
