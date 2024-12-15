@@ -1,146 +1,31 @@
-# Mediarr - Complete Media Server Stack Setup Guide
+# Mediarr - My Home Media Server Setup
 
-## Overview
+Hey there! 👋 This is my personal setup for running a media server at home. I've put together this collection of scripts and guides to help friends set up their own media servers using the Arr stack (Sonarr, Radarr, etc.) and Jellyfin.
 
-Mediarr is a comprehensive media server solution that combines multiple services to create a powerful and automated media management system. This guide will walk you through setting up a complete media server stack using Docker containers.
+## What's This All About?
 
-### Features
+This is basically everything you need to run your own Netflix-like setup at home. It'll help you:
+- Stream your media anywhere in your house
+- Automatically organize your movies and TV shows
+- Keep track of your shows and download new episodes
+- Handle media downloads cleanly and automatically
 
-- Media streaming with hardware acceleration
-- Automated TV show and movie downloads
-- Automated media organization
-- Comprehensive media management
-- Integrated download client
-- Indexer management
+## What's Included?
+- Setup scripts to get everything running
+- A guide that explains how everything works
+- Configuration files you can use as templates
+- Tips and tricks I learned while setting this up
 
-### Components
+## Requirements
+- A Linux machine or server (I use Manjaro)
+- Some basic command line knowledge
+- A NAS or hard drives for storage
+- Basic networking knowledge (helpful but not required)
 
-- **Jellyfin**: Media streaming server with hardware acceleration
-- **Sonarr**: TV show management and automation
-- **Radarr**: Movie management and automation
-- **Prowlarr**: Indexer management
-- **qBittorrent**: Download client with VueTorrent UI
-- **FlareSolverr**: Bypass Cloudflare protection
-- **Unpackerr**: Automated media extraction
+## Warning ⚠️
+This is a personal project - not professional software! It works for me, but you might need to tweak things for your setup. Feel free to ask questions or suggest improvements!
 
-## Prerequisites
+## Questions?
+If you run into issues or need help, just open an issue here on GitHub. I'll help when I can!
 
-- Linux server (tested on Manjaro)
-- NAS or storage solution
-- Docker and Docker Compose
-- Basic command line knowledge
-- Root or sudo access
-
-## Repository Structure
-
-```
-mediarr/
-├── README.md
-├── scripts/
-│   ├── setup.sh
-│   └── update.sh
-├── configs/
-│   └── docker-compose.yml
-└── docs/
-    ├── INSTALLATION.md
-    ├── CONFIGURATION.md
-    └── TROUBLESHOOTING.md
-```
-
-## Quick Start
-
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/mediarr.git
-cd mediarr
-```
-
-2. Make the setup script executable:
-```bash
-chmod +x scripts/setup.sh
-```
-
-3. Run the setup script:
-```bash
-sudo ./scripts/setup.sh
-```
-
-## Detailed Installation
-
-### 1. System Preparation
-
-Install required packages:
-```bash
-sudo pacman -S docker docker-compose cifs-utils curl htop iotop
-```
-
-Enable and start Docker:
-```bash
-sudo systemctl enable --now docker
-```
-
-### 2. Directory Structure
-
-The setup script will create the following directory structure:
-```
-/opt/mediarr/
-├── config/
-│   ├── jellyfin/
-│   ├── sonarr/
-│   ├── radarr/
-│   ├── qbittorrent/
-│   └── prowlarr/
-├── cache/
-├── scripts/
-└── logs/
-
-/mnt/nas/
-├── movies/
-├── shows/
-├── dokus/
-└── downloads/
-```
-
-### 3. NAS Integration
-
-The script will:
-1. Create a secure credentials file
-2. Configure automatic mounting
-3. Set up proper permissions
-
-### 4. Service Configuration
-
-Each service is configured with:
-- Proper permissions (PUID/PGID)
-- Volume mappings
-- Network settings
-- Security options
-- Health checks
-
-#### Jellyfin Configuration
-- Hardware acceleration enabled
-- VAAPI configured for AMD GPUs
-- Resource limits set
-- Host network mode for best performance
-
-#### Sonarr/Radarr Configuration
-- Mapped to appropriate media directories
-- Download client integration
-- API access for automation
-
-#### qBittorrent Configuration
-- VueTorrent UI enabled
-- Proper port mappings
-- Download directory integration
-
-## Post-Installation Setup
-
-### 1. Initial Access
-
-Access your services at:
-- Jellyfin: `http://localhost:8096`
-- Sonarr: `http://localhost:8989`
-- Radarr: `http://localhost:7878`
-- qBittorrent: `http://localhost:8080`
-- Prowlarr: `http://localhost:9696`
-- FlareSolverr
+Happy streaming! 🍿
