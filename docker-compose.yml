@@ -6,9 +6,9 @@ services:
     volumes:
       - ${MEDIARR_CONFIG}/jellyfin:/config
       - ${MEDIARR_CACHE}:/cache
-      - ${NAS_MOVIES}:/media/movies:ro
-      - ${NAS_SHOWS}:/media/shows:ro
-      - ${NAS_DOKUS}:/media/dokus:ro
+      - ${NAS_MOVIES}:/media/movies
+      - ${NAS_SHOWS}:/media/shows
+      - ${NAS_DOKUS}:/media/dokus
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
