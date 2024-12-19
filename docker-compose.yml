@@ -61,6 +61,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    networks:
+      - mediarr_network
 
   radarr:
     image: linuxserver/radarr:latest
@@ -83,6 +85,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    networks:
+      - mediarr_network
 
   gluetun:
     image: qmcgaw/gluetun:v3
@@ -96,6 +100,9 @@ services:
       - WIREGUARD_ADDRESSES=${WIREGUARD_ADDRESSES}
       - SERVER_COUNTRIES=Belgium
       - TZ=${TZ}
+      - LOG_LEVEL=debug # debug, info, warning, error, fatal, panic
+      - VPN_ENDPOINT_PORT=51820 # Mullvad default port
+      - FIREWALL_VPN_INPUT_PORTS=6881 # qBittorrent incoming port
     devices:
       - /dev/net/tun:/dev/net/tun
     ports:
@@ -107,6 +114,8 @@ services:
     volumes:
       - ${MEDIARR_CONFIG}/gluetun:/gluetun
     restart: unless-stopped
+    networks:
+      - mediarr_network
 
   qbittorrent:
     image: linuxserver/qbittorrent:latest
@@ -141,6 +150,8 @@ services:
     ports:
       - "${PROWLARR_PORT}:9696"
     restart: unless-stopped
+    networks:
+      - mediarr_network
 
   flaresolverr:
     image: ghcr.io/flaresolverr/flaresolverr:latest
@@ -150,8 +161,10 @@ services:
       - TZ=Europe/Vienna
       - CAPTCHA_SOLVER=none
     ports:
-      - "8191:8191"
+      - "${FLARESOLVERR_PORT}:8191"
     restart: unless-stopped
+    networks:
+      - mediarr_network
 
   unpackerr:
     image: ghcr.io/unpackerr/unpackerr:latest
@@ -171,3 +184,9 @@ services:
     depends_on:
       - sonarr
       - radarr
+    networks:
+    - mediarr_network
+
+networks:
+  mediarr_network:
+    driver: bridge
