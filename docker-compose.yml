@@ -39,6 +39,38 @@ services:
       timeout: 10s
       retries: 3
 
+  plex:
+    image: plexinc/pms-docker:latest
+    container_name: plex
+    network_mode: "host"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      # Claim token will only be used if uncommented in .env
+      - PLEX_CLAIM=${PLEX_CLAIM:-} # Will be empty if not set
+    devices:
+      - /dev/dri/card1:/dev/dri/card1
+      - /dev/dri/renderD128:/dev/dri/renderD128
+      # - /dev/bus/usb:/dev/bus/usb  # Add USB access for TV tuners
+    group_add:
+      - "989" # render group
+      - "985" # video group
+    volumes:
+      - ${MEDIARR_CONFIG}/plex:/config
+      - ${NAS_MOVIES}:/media/movies:ro
+      - ${NAS_SHOWS}:/media/shows:ro
+      - ${NAS_DOKUS}:/media/dokus:ro
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 2G
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
   sonarr:
     image: linuxserver/sonarr:latest
     container_name: sonarr
@@ -102,15 +134,15 @@ services:
       - TZ=${TZ}
       - LOG_LEVEL=debug # debug, info, warning, error, fatal, panic
       - VPN_ENDPOINT_PORT=51820 # Mullvad default port
-      - FIREWALL_VPN_INPUT_PORTS=6881 # qBittorrent incoming port
+      - FIREWALL_VPN_INPUT_PORTS=6881,1337,6969,80,451 # qBittorrent incoming port
     devices:
       - /dev/net/tun:/dev/net/tun
     ports:
-      - "8888:8888/tcp"  # HTTP proxy port
-      - "8388:8388/tcp"  # SOCKS proxy port
-      - "${QB_PORT}:8080"      # qBittorrent WebUI
-      - "${QB_INCOMING_PORT}:6881"      # qBittorrent incoming
-      - "${QB_INCOMING_PORT}:6881/udp"  # qBittorrent incoming UDP
+      - "8888:8888/tcp" # HTTP proxy port
+      - "8388:8388/tcp" # SOCKS proxy port
+      - "${QB_PORT}:8080" # qBittorrent WebUI
+      - "${QB_INCOMING_PORT}:6881" # qBittorrent incoming
+      - "${QB_INCOMING_PORT}:6881/udp" # qBittorrent incoming UDP
     volumes:
       - ${MEDIARR_CONFIG}/gluetun:/gluetun
     restart: unless-stopped
@@ -130,10 +162,10 @@ services:
     volumes:
       - ${MEDIARR_CONFIG}/qbittorrent:/config
       - ${NAS_DOWNLOADS}:/downloads
-#    ports:
-#      - "${QB_PORT}:8080"
-#      - "${QB_INCOMING_PORT}:6881"
-#      - "${QB_INCOMING_PORT}:6881/udp"
+    #    ports:
+    #      - "${QB_PORT}:8080"
+    #      - "${QB_INCOMING_PORT}:6881"
+    #      - "${QB_INCOMING_PORT}:6881/udp"
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
@@ -185,7 +217,7 @@ services:
       - sonarr
       - radarr
     networks:
-    - mediarr_network
+      - mediarr_network
 
 networks:
   mediarr_network:
