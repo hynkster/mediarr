@@ -21,6 +21,7 @@ services:
     devices:
       - /dev/dri/card1:/dev/dri/card1
       - /dev/dri/renderD128:/dev/dri/renderD128
+    privileged: false  # Explicitly keep security
     group_add:
       - "989"
       - "985"
@@ -40,33 +41,37 @@ services:
       retries: 3
 
   plex:
-    image: plexinc/pms-docker:latest
+    image: lscr.io/linuxserver/plex:latest
     container_name: plex
     network_mode: "host"
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
+      - VERSION=docker
       # Claim token will only be used if uncommented in .env
-      - PLEX_CLAIM=${PLEX_CLAIM:-} # Will be empty if not set
+      - PLEX_CLAIM=${PLEX_CLAIM} # Will be empty if not set
     devices:
-      - /dev/dri/card1:/dev/dri/card1
-      - /dev/dri/renderD128:/dev/dri/renderD128
+      - /dev/dri:/dev/dri
       # - /dev/bus/usb:/dev/bus/usb  # Add USB access for TV tuners
+    privileged: false  # Explicitly keep security
     group_add:
       - "989" # render group
       - "985" # video group
     volumes:
       - ${MEDIARR_CONFIG}/plex:/config
-      - ${NAS_MOVIES}:/media/movies:ro
-      - ${NAS_SHOWS}:/media/shows:ro
-      - ${NAS_DOKUS}:/media/dokus:ro
+      - ${MEDIARR_DATA}/plex/transcode:/transcode
+      - ${NAS_MOVIES}:/media/movies
+      - ${NAS_SHOWS}:/media/shows
+      - /usr/share/libdrm:/home/runner/actions-runner/_work/plex-conan/plex-conan/.conan/data/libdrm/2.4.120-0/sixones/update-expat/build/73ee780ba6ea3ef381da6e7f229c475bfaf477ca/meson-install/share/libdrm:ro
+#      - /usr/lib/plexmediaserver:/usr/lib/plexmediaserver
+#      - /usr/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu
     deploy:
       resources:
         limits:
-          memory: 4G
+          memory: 8G
         reservations:
-          memory: 2G
+          memory: 4G
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
