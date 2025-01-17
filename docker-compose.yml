@@ -9,6 +9,7 @@ services:
       - ${NAS_MOVIES}:/media/movies
       - ${NAS_SHOWS}:/media/shows
       - ${NAS_DOKUS}:/media/dokus
+      - ${NAS_FLIMMIT}:/media/flimmit
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -63,6 +64,7 @@ services:
       - ${MEDIARR_DATA}/plex/transcode:/transcode
       - ${NAS_MOVIES}:/media/movies
       - ${NAS_SHOWS}:/media/shows
+      - ${NAS_FLIMMIT}:/media/flimmit
       - /usr/share/libdrm:/home/runner/actions-runner/_work/plex-conan/plex-conan/.conan/data/libdrm/2.4.120-0/sixones/update-expat/build/73ee780ba6ea3ef381da6e7f229c475bfaf477ca/meson-install/share/libdrm:ro
 #      - /usr/lib/plexmediaserver:/usr/lib/plexmediaserver
 #      - /usr/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu
@@ -131,15 +133,17 @@ services:
     cap_add:
       - NET_ADMIN
     environment:
-      - VPN_SERVICE_PROVIDER=mullvad
+      - VPN_SERVICE_PROVIDER=protonvpn # mullvad, protonvpn
       - VPN_TYPE=wireguard
       - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
       - WIREGUARD_ADDRESSES=${WIREGUARD_ADDRESSES}
       - SERVER_COUNTRIES=Belgium
       - TZ=${TZ}
       - LOG_LEVEL=debug # debug, info, warning, error, fatal, panic
-      - VPN_ENDPOINT_PORT=51820 # Mullvad default port
+#       - WIREGUARD_ENDPOINT_PORT=51820 # Mullvad default port
       - FIREWALL_VPN_INPUT_PORTS=6881,1337,6969,80,451 # qBittorrent incoming port
+      - VPN_PORT_FORWARDING=on
+      - VPN_PORT_FORWARDING_PROVIDER=protonvpn
     devices:
       - /dev/net/tun:/dev/net/tun
     ports:
@@ -150,6 +154,7 @@ services:
       - "${QB_INCOMING_PORT}:6881/udp" # qBittorrent incoming UDP
     volumes:
       - ${MEDIARR_CONFIG}/gluetun:/gluetun
+      - ${MEDIARR_DATA}/gluetun:/tmp/gluetun
     restart: unless-stopped
     networks:
       - mediarr_network
@@ -167,6 +172,7 @@ services:
     volumes:
       - ${MEDIARR_CONFIG}/qbittorrent:/config
       - ${NAS_DOWNLOADS}:/downloads
+      - ${MEDIARR_DATA}/gluetun:/gluetun-data
     #    ports:
     #      - "${QB_PORT}:8080"
     #      - "${QB_INCOMING_PORT}:6881"
