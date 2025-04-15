@@ -1,6 +1,6 @@
 # Mediarr - My Home Media Server Setup
 
-Hey there! 👋 This is my personal setup for running a media server at home. I've put together this collection of scripts and guides to help friends set up their own media servers using the Arr stack (Sonarr, Radarr, etc.) and Jellyfin.
+Hey there! 👋 This is my personal setup for running a media server at home. I've put together this collection of scripts and guides to help friends set up their own media servers using the Arr stack (Sonarr, Radarr, etc.) and Jellyfin or Plex.
 
 ## What's This All About?
 

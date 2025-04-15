@@ -50,11 +50,9 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
       - VERSION=docker
-      # Claim token will only be used if uncommented in .env
-      - PLEX_CLAIM=${PLEX_CLAIM} # Will be empty if not set
+      - PLEX_CLAIM=${PLEX_CLAIM} # Claim token will only be used if uncommented in .env
     devices:
       - /dev/dri:/dev/dri
-      # - /dev/bus/usb:/dev/bus/usb  # Add USB access for TV tuners
     privileged: false  # Explicitly keep security
     group_add:
       - "989" # render group
@@ -66,8 +64,6 @@ services:
       - ${NAS_SHOWS}:/media/shows
       - ${NAS_FLIMMIT}:/media/flimmit
       - /usr/share/libdrm:/home/runner/actions-runner/_work/plex-conan/plex-conan/.conan/data/libdrm/2.4.120-0/sixones/update-expat/build/73ee780ba6ea3ef381da6e7f229c475bfaf477ca/meson-install/share/libdrm:ro
-#      - /usr/lib/plexmediaserver:/usr/lib/plexmediaserver
-#      - /usr/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu
     deploy:
       resources:
         limits:
@@ -140,7 +136,7 @@ services:
       - SERVER_COUNTRIES=Belgium
       - TZ=${TZ}
       - LOG_LEVEL=debug # debug, info, warning, error, fatal, panic
-#       - WIREGUARD_ENDPOINT_PORT=51820 # Mullvad default port
+
       - FIREWALL_VPN_INPUT_PORTS=6881,1337,6969,80,451 # qBittorrent incoming port
       - VPN_PORT_FORWARDING=on
       - VPN_PORT_FORWARDING_PROVIDER=protonvpn
