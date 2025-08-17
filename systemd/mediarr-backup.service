@@ -1,0 +1,11 @@
+[Unit]
+Description=Create a backup of the Mediarr configuration
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/mediarr/scripts/backup.sh
+
+[Install]
+WantedBy=multi-user.target

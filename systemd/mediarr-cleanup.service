@@ -1,0 +1,9 @@
+[Unit]
+Description=Clean up old Mediarr backups
+
+[Service]
+Type=oneshot
+ExecStart=/opt/mediarr/scripts/cleanup_backups.sh
+
+[Install]
+WantedBy=multi-user.target

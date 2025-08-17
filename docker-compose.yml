@@ -169,10 +169,6 @@ services:
       - ${MEDIARR_CONFIG}/qbittorrent:/config
       - ${NAS_DOWNLOADS}:/downloads
       - ${MEDIARR_DATA}/gluetun:/gluetun-data
-    #    ports:
-    #      - "${QB_PORT}:8080"
-    #      - "${QB_INCOMING_PORT}:6881"
-    #      - "${QB_INCOMING_PORT}:6881/udp"
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
@@ -225,6 +221,40 @@ services:
       - radarr
     networks:
       - mediarr_network
+
+  healthchecks:
+    image: lscr.io/linuxserver/healthchecks:latest
+    container_name: healthchecks
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - SITE_ROOT=${HC_SITE_ROOT}
+      - SITE_NAME=${HC_SITE_NAME}
+      - DEFAULT_FROM_EMAIL=${HC_DEFAULT_FROM_EMAIL}
+      - EMAIL_HOST=${HC_EMAIL_HOST}
+      - EMAIL_PORT=${HC_EMAIL_PORT}
+      - EMAIL_HOST_USER=${HC_EMAIL_HOST_USER}
+      - EMAIL_HOST_PASSWORD=${HC_EMAIL_HOST_PASSWORD}
+      - EMAIL_USE_TLS=${HC_EMAIL_USE_TLS}
+    volumes:
+      - ${MEDIARR_CONFIG}/healthchecks:/config
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    networks:
+      - mediarr_network
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_NO_PULL=true
+    command: --run-once
+    restart: "no"
 
 networks:
   mediarr_network:
