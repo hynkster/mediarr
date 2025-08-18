@@ -18,10 +18,14 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 echo "Step 1: Copying systemd unit files to /etc/systemd/system/..."
-cp /opt/mediarr/systemd/mediarr-backup.service /etc/systemd/system/
-cp /opt/mediarr/systemd/mediarr-backup.timer /etc/systemd/system/
-cp /opt/mediarr/systemd/mediarr-cleanup.service /etc/systemd/system/
-cp /opt/mediarr/systemd/mediarr-cleanup.timer /etc/systemd/system/
+# Copy systemd files
+log "Copying systemd service and timer files..."
+cp mediarr-backup.service /etc/systemd/system/
+cp mediarr-backup.timer /etc/systemd/system/
+cp mediarr-cleanup.service /etc/systemd/system/
+cp mediarr-cleanup.timer /etc/systemd/system/
+cp mediarr-update.service /etc/systemd/system/
+cp mediarr-update.timer /etc/systemd/system/
 echo "Done."
 echo
 

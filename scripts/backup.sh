@@ -4,7 +4,12 @@
 BACKUP_DIR="/mnt/nas/backups/mediarr"
 MEDIARR_ROOT="/opt/mediarr"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-BACKUP_FILE="${BACKUP_DIR}/mediarr_backup_${TIMESTAMP}.tar.gz"
+BACKUP_SUFFIX=$1
+if [ -z "$BACKUP_SUFFIX" ]; then
+  BACKUP_FILE="${BACKUP_DIR}/mediarr_backup_${TIMESTAMP}.tar.gz"
+else
+  BACKUP_FILE="${BACKUP_DIR}/mediarr_backup_${BACKUP_SUFFIX}_${TIMESTAMP}.tar.gz"
+fi
 
 # Color codes for output
 GREEN='\033[0;32m'
@@ -21,10 +26,10 @@ error() {
 }
 
 # Check if running as root
-if [ "$EUID" -ne 0 ]; then
-    error "Please run as root"
-    exit 1
-fi
+# if [ "$EUID" -ne 0 ]; then
+#     error "Please run as root"
+#     exit 1
+# fi
 
 # Create backup directory if it doesn't exist
 mkdir -p "$BACKUP_DIR"

@@ -1,0 +1,11 @@
+[Unit]
+Description=Update Mediarr Docker containers
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/mediarr/scripts/update.sh
+
+[Install]
+WantedBy=multi-user.target

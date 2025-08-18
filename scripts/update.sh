@@ -18,10 +18,10 @@ error() {
 }
 
 # Check if running as root
-if [ "$EUID" -ne 0 ]; then
-    error "Please run as root"
-    exit 1
-fi
+# if [ "$EUID" -ne 0 ]; then
+#     error "Please run as root"
+#     exit 1
+# fi
 
 # Main update function
 main() {
@@ -30,7 +30,7 @@ main() {
     cd "$MEDIARR_ROOT" || exit
 
     log "Running backup before update..."
-    if ! "${MEDIARR_ROOT}/scripts/backup.sh"; then
+    if ! "${MEDIARR_ROOT}/scripts/backup.sh" "pre-update"; then
         error "Backup failed. Aborting update."
         exit 1
     fi

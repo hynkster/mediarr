@@ -39,45 +39,54 @@ This project now includes [Healthchecks](https://healthchecks.io/), a service fo
 
 ## Automated Updates
 
-This project now includes a script to automate the process of updating your Docker containers. The script uses [Watchtower](https://containrrr.dev/watchtower/) to update the containers and also creates a backup before starting the update process.
+This project includes a script to automate the process of updating your Docker containers. The script is run automatically every Sunday at 02:00 by a `systemd` timer.
 
-### How to Use the Update Script
+### How it Works
 
-The `update.sh` script is located in the `scripts` directory. It will:
+The `update.sh` script will:
 
-1.  Run the `backup.sh` script to create a backup of your configuration.
-2.  Start the Watchtower container to check for new images and update your containers.
+1.  Run the `backup.sh` script to create a special `pre-update` backup of your configuration.
+2.  Start a Watchtower container to check for new images and update your running services.
 3.  Remove the Watchtower container after the update is complete.
 4.  Prune old Docker images to save disk space.
 
-To run the update script, simply execute it as root:
+### Activation
+The automated update system is activated along with the backup system. Simply run the activation script as root:
+```bash
+sudo /opt/mediarr/scripts/activate_backup_system.sh
+```
+This will enable the weekly update timer along with the backup and cleanup timers.
 
+### Manual Update
+If you need to run an update manually, you can execute the script directly:
 ```bash
 sudo /opt/mediarr/scripts/update.sh
 ```
 
-It's recommended to run this script periodically to keep your services up-to-date. You can set up a cron job to automate this process.
+## Automated Backup & Recovery
 
-## Backup Strategy
+A fully automated backup and cleanup system is now in place using `systemd` timers.
 
-Backing up your configuration is crucial to avoid losing your settings and metadata. This project includes a simple backup script to help you with this.
+### Features
+- **Daily Backups:** A backup of your entire `/opt/mediarr/config` directory is created every day at 03:00.
+- **Automated Cleanup:** Old backups are automatically deleted at 04:00 based on a retention policy to save disk space.
+- **Smart Retention Policy:**
+    - Keeps all daily backups for the last 14 days.
+    - Keeps the first backup of the month for the last 3 months.
+    - All other older backups are automatically removed.
 
-### How to Use the Backup Script
+### Activation
+To activate the automated backup system, simply run the activation script as root:
+```bash
+sudo /opt/mediarr/scripts/activate_backup_system.sh
+```
+This script will copy the `systemd` service and timer files to the correct location and enable them. No manual cron job setup is required.
 
-The `backup.sh` script is located in the `scripts` directory. It will:
-
-1.  Stop the running Docker containers.
-2.  Create a compressed backup of your `config` directory.
-3.  Store the backup in `/mnt/nas/backups/mediarr` (you can change this in the script).
-4.  Restart the Docker containers.
-
-To run the backup script, simply execute it as root:
-
+### Manual Backup
+If you need to create a backup outside of the scheduled time, you can run the backup script manually:
 ```bash
 sudo /opt/mediarr/scripts/backup.sh
 ```
-
-It's recommended to run this script periodically. You can set up a cron job to automate this process.
 
 ### How to Restore from a Backup
 

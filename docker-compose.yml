@@ -4,12 +4,12 @@ services:
     container_name: jellyfin
     network_mode: "host"
     volumes:
-      - ${MEDIARR_CONFIG}/jellyfin:/config
-      - ${MEDIARR_CACHE}:/cache
-      - ${NAS_MOVIES}:/media/movies
-      - ${NAS_SHOWS}:/media/shows
-      - ${NAS_DOKUS}:/media/dokus
-      - ${NAS_FLIMMIT}:/media/flimmit
+      - ${MEDIARR_ROOT}/config/jellyfin:/config
+      - ${MEDIARR_ROOT}/cache:/cache
+      - ${NAS_ROOT}/movies:/media/movies
+      - ${NAS_ROOT}/shows:/media/shows
+      - ${NAS_ROOT}/dokus:/media/dokus
+      - ${NAS_ROOT}/FlimmitArchiv:/media/flimmit
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -22,7 +22,7 @@ services:
     devices:
       - /dev/dri/card1:/dev/dri/card1
       - /dev/dri/renderD128:/dev/dri/renderD128
-    privileged: false  # Explicitly keep security
+    privileged: false
     group_add:
       - "989"
       - "985"
@@ -50,19 +50,19 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
       - VERSION=docker
-      - PLEX_CLAIM=${PLEX_CLAIM} # Claim token will only be used if uncommented in .env
+      - PLEX_CLAIM=${PLEX_CLAIM}
     devices:
       - /dev/dri:/dev/dri
-    privileged: false  # Explicitly keep security
+    privileged: false
     group_add:
-      - "989" # render group
-      - "985" # video group
+      - "989"
+      - "985"
     volumes:
-      - ${MEDIARR_CONFIG}/plex:/config
-      - ${MEDIARR_DATA}/plex/transcode:/transcode
-      - ${NAS_MOVIES}:/media/movies
-      - ${NAS_SHOWS}:/media/shows
-      - ${NAS_FLIMMIT}:/media/flimmit
+      - ${MEDIARR_ROOT}/config/plex:/config
+      - ${MEDIARR_ROOT}/data/plex/transcode:/transcode
+      - ${NAS_ROOT}/movies:/media/movies
+      - ${NAS_ROOT}/shows:/media/shows
+      - ${NAS_ROOT}/FlimmitArchiv:/media/flimmit
       - /usr/share/libdrm:/home/runner/actions-runner/_work/plex-conan/plex-conan/.conan/data/libdrm/2.4.120-0/sixones/update-expat/build/73ee780ba6ea3ef381da6e7f229c475bfaf477ca/meson-install/share/libdrm:ro
     deploy:
       resources:
@@ -82,10 +82,10 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     volumes:
-      - ${MEDIARR_CONFIG}/sonarr:/config
-      - ${NAS_SHOWS}:/tv/shows
-      - ${NAS_DOKUS}:/tv/dokus
-      - ${NAS_DOWNLOADS}:/downloads
+      - ${MEDIARR_ROOT}/config/sonarr:/config
+      - ${NAS_ROOT}/shows:/tv/shows
+      - ${NAS_ROOT}/dokus:/tv/dokus
+      - ${NAS_ROOT}/downloads:/downloads
     ports:
       - "8989:8989"
     security_opt:
@@ -107,9 +107,9 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     volumes:
-      - ${MEDIARR_CONFIG}/radarr:/config
-      - ${NAS_MOVIES}:/movies
-      - ${NAS_DOWNLOADS}:/downloads
+      - ${MEDIARR_ROOT}/config/radarr:/config
+      - ${NAS_ROOT}/movies:/movies
+      - ${NAS_ROOT}/downloads:/downloads
     ports:
       - "7878:7878"
     restart: unless-stopped
@@ -129,28 +129,27 @@ services:
     cap_add:
       - NET_ADMIN
     environment:
-      - VPN_SERVICE_PROVIDER=protonvpn # mullvad, protonvpn
+      - VPN_SERVICE_PROVIDER=protonvpn
       - VPN_TYPE=wireguard
       - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
       - WIREGUARD_ADDRESSES=${WIREGUARD_ADDRESSES}
       - SERVER_COUNTRIES=Belgium
       - TZ=${TZ}
-      - LOG_LEVEL=debug # debug, info, warning, error, fatal, panic
-
-      - FIREWALL_VPN_INPUT_PORTS=6881,1337,6969,80,451 # qBittorrent incoming port
+      - LOG_LEVEL=debug
+      - FIREWALL_VPN_INPUT_PORTS=6881,1337,6969,80,451
       - VPN_PORT_FORWARDING=on
       - VPN_PORT_FORWARDING_PROVIDER=protonvpn
     devices:
       - /dev/net/tun:/dev/net/tun
     ports:
-      - "8888:8888/tcp" # HTTP proxy port
-      - "8388:8388/tcp" # SOCKS proxy port
-      - "${QB_PORT}:8080" # qBittorrent WebUI
-      - "${QB_INCOMING_PORT}:6881" # qBittorrent incoming
-      - "${QB_INCOMING_PORT}:6881/udp" # qBittorrent incoming UDP
+      - "8888:8888/tcp"
+      - "8388:8388/tcp"
+      - "${QB_PORT}:8080"
+      - "${QB_INCOMING_PORT}:6881"
+      - "${QB_INCOMING_PORT}:6881/udp"
     volumes:
-      - ${MEDIARR_CONFIG}/gluetun:/gluetun
-      - ${MEDIARR_DATA}/gluetun:/tmp/gluetun
+      - ${MEDIARR_ROOT}/config/gluetun:/gluetun
+      - ${MEDIARR_ROOT}/data/gluetun:/tmp/gluetun
     restart: unless-stopped
     networks:
       - mediarr_network
@@ -166,9 +165,9 @@ services:
       - WEBUI_PORT=8080
       - DOCKER_MODS=ghcr.io/vuetorrent/vuetorrent-lsio-mod:latest
     volumes:
-      - ${MEDIARR_CONFIG}/qbittorrent:/config
-      - ${NAS_DOWNLOADS}:/downloads
-      - ${MEDIARR_DATA}/gluetun:/gluetun-data
+      - ${MEDIARR_ROOT}/config/qbittorrent:/config
+      - ${NAS_ROOT}/downloads:/downloads
+      - ${MEDIARR_ROOT}/data/gluetun:/gluetun-data
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
@@ -181,7 +180,7 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     volumes:
-      - /opt/mediarr/config/prowlarr:/config
+      - ${MEDIARR_ROOT}/config/prowlarr:/config
     ports:
       - "${PROWLARR_PORT}:9696"
     restart: unless-stopped
@@ -214,7 +213,7 @@ services:
       - UN_RADARR_0_API_KEY=${RADARR_API_KEY}
       - UN_PATHS_0=/downloads
     volumes:
-      - ${NAS_DOWNLOADS}:/downloads
+      - ${NAS_ROOT}/downloads:/downloads
     restart: unless-stopped
     depends_on:
       - sonarr
@@ -238,7 +237,7 @@ services:
       - EMAIL_HOST_PASSWORD=${HC_EMAIL_HOST_PASSWORD}
       - EMAIL_USE_TLS=${HC_EMAIL_USE_TLS}
     volumes:
-      - ${MEDIARR_CONFIG}/healthchecks:/config
+      - ${MEDIARR_ROOT}/config/healthchecks:/config
     ports:
       - "8000:8000"
     restart: unless-stopped

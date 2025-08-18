@@ -134,11 +134,11 @@ The `mediarr_network` is a bridge network that allows the containers to communic
 
 - **Purpose:** Automates the process of updating the Docker containers.
 - **Functionality:**
-    - Runs `backup.sh` to create a backup of the configuration.
+    - Runs `backup.sh` to create a special `pre-update` backup of the configuration.
     - Uses Watchtower to check for and pull new Docker images.
     - Removes the Watchtower container after the update.
     - Prunes old Docker images to free up disk space.
-- **Usage:**
+- **Usage:** This script is run automatically every Sunday at 02:00 by the `mediarr-update.service` systemd unit, but can be run manually:
     ```bash
     sudo /opt/mediarr/scripts/update.sh
     ```
@@ -151,9 +151,27 @@ The `mediarr_network` is a bridge network that allows the containers to communic
     - Creates a compressed archive of the `config` directory.
     - Stores the backup in a specified directory (default: `/mnt/nas/backups/mediarr`).
     - Restarts the Docker containers.
-- **Usage:**
+- **Usage:** This script is run automatically by the `mediarr-backup.service` systemd unit, but can be run manually:
     ```bash
     sudo /opt/mediarr/scripts/backup.sh
+    ```
+
+### `cleanup_backups.sh`
+
+- **Purpose:** Cleans up old backups based on a retention policy.
+- **Functionality:**
+    - Deletes backups older than 14 days, but keeps the first backup of each month for the last 3 months.
+- **Usage:** This script is run automatically by the `mediarr-cleanup.service` systemd unit.
+
+### `activate_backup_system.sh`
+
+- **Purpose:** Activates the automated backup and cleanup system.
+- **Functionality:**
+    - Copies the `systemd` service and timer files to `/etc/systemd/system`.
+    - Enables and starts the `systemd` timers.
+- **Usage:**
+    ```bash
+    sudo /opt/mediarr/scripts/activate_backup_system.sh
     ```
 
 ### `update-port.sh`

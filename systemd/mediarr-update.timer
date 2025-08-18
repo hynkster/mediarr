@@ -1,8 +1,8 @@
 [Unit]
-Description=Run Mediarr backup daily
+Description=Run Mediarr update weekly
 
 [Timer]
-OnCalendar=Mon..Sat 03:00:00
+OnCalendar=Sun 02:00:00
 AccuracySec=1h
 Persistent=true
 
