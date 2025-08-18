@@ -186,3 +186,15 @@ The `mediarr_network` is a bridge network that allows the containers to communic
     ```bash
     /opt/mediarr/scripts/update-port.sh
     ```
+
+### `os-update.sh`
+
+- **Purpose:** Automates the process of updating the host operating system.
+- **Functionality:**
+    - Detects the system's package manager (`apt` or `pacman`).
+    - Runs the appropriate commands to update all system packages.
+    - Reboots the system if a reboot is required after the update.
+- **Usage:** This script is run automatically every day at 05:00 by the `mediarr-os-update.service` systemd unit, but can be run manually:
+    ```bash
+    sudo /opt/mediarr/scripts/os-update.sh
+    ```

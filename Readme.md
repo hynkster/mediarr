@@ -63,6 +63,29 @@ If you need to run an update manually, you can execute the script directly:
 sudo /opt/mediarr/scripts/update.sh
 ```
 
+## Automated OS Updates
+
+To keep the host system secure and up-to-date, a new automated OS update system has been implemented.
+
+### How it Works
+A new script, `os-update.sh`, is run daily at 05:00 by a dedicated `systemd` timer. This script will:
+1.  Check for and install system package updates (supports `apt` and `pacman`).
+2.  Automatically reboot the system if required by the updates.
+
+This process is completely separate from the weekly application (Docker) updates.
+
+### Activation
+The OS update timer is activated along with the other services in the `activate_backup_system.sh` script.
+```bash
+sudo /opt/mediarr/scripts/activate_backup_system.sh
+```
+
+### Manual OS Update
+If you need to run an OS update manually, you can execute the script directly:
+```bash
+sudo /opt/mediarr/scripts/os-update.sh
+```
+
 ## Automated Backup & Recovery
 
 A fully automated backup and cleanup system is now in place using `systemd` timers.
