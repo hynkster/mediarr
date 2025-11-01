@@ -54,6 +54,8 @@ main() {
     fi
 
     log "Starting services..."
+    log "Activating NAS mount..."
+    ls -la /mnt/nas/downloads > /dev/null
     if ! docker compose start; then
         error "Failed to start services."
         exit 1

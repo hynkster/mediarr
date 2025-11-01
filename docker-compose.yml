@@ -249,7 +249,7 @@ services:
     container_name: watchtower
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    command: --run-once --pull-images
+    command: --run-once
     restart: "no"
 
 networks:

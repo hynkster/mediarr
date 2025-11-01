@@ -10,11 +10,11 @@ NC='\033[0m' # No Color
 
 # Logging function
 log() {
-    echo -e "${GREEN}[$(date \'+%Y-%m-%d %H:%M:%S\')]${NC} $1"
+    echo -e "${GREEN}[$(date '+%Y-%m-%d %H:%M:%S')]${NC} $1"
 }
 
 error() {
-    echo -e "${RED}[$(date \'+%Y-%m-%d %H:%M:%S\')] ERROR:${NC} $1"
+    echo -e "${RED}[$(date '+%Y-%m-%d %H:%M:%S')] ERROR:${NC} $1"
 }
 
 # Check if running as root
